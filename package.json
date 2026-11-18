@@ -1,0 +1,16 @@
+{
+  "name": "fnf-arrow-playground",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "FNF V-Slice-inspired downscroll note prototype (Phase 1.5)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node tests/run.mjs"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
