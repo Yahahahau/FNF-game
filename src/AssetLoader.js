@@ -154,6 +154,28 @@ function atlasFromSheet(sheet) {
   return new Atlas(sheet.canvas, parseSparrow(sheet.xml));
 }
 
+/**
+ * The official hold sheet (NOTE_hold_assets.png) has no XML: 8 equal columns, each direction's
+ * body followed by its end cap (SustainTrail.hx). Slice it into an atlas + a matching style, so the
+ * rest of the engine treats it like any other pack. The cap's bottom 10% is transparent padding
+ * (bottomClip 0.9) and is cut off.
+ */
+export function sliceHoldSheet(image, scale) {
+  const colW = Math.floor(image.width / 8);
+  const h = image.height;
+  const capH = Math.round(h * 0.9);
+  const frames = [];
+  const data = {};
+  DIRECTIONS.forEach((d, i) => {
+    const mk = (name, col, fh) => ({
+      name, x: col * colW, y: 0, w: colW, h: fh, frameX: 0, frameY: 0, frameW: colW, frameH: fh, rotated: false,
+    });
+    frames.push(mk(`${d}HoldBody0000`, i * 2, h), mk(`${d}HoldEnd0000`, i * 2 + 1, capH));
+    data[d] = { body: { prefix: `${d}HoldBody` }, end: { prefix: `${d}HoldEnd` } };
+  });
+  return { atlas: new Atlas(image, frames), style: { scale, data } };
+}
+
 const has = (atlas, prefix) => !!atlas && !!prefix && atlas.byPrefix(prefix).length > 0;
 
 /** Does `style` + its atlases contain every animation the engine needs? Returns missing prefixes. */
@@ -255,7 +277,22 @@ export class AssetLoader {
     await apply('noteStrumline', 'strumline', (s) => tryAtlas(s.assetPath), (a) => (this.atlas.strumline = a));
     await apply('noteSplash', 'splash', (s) => tryAtlas(s.assetPath), (a) => (this.atlas.splash = a));
     await apply('note', 'notes', (s) => tryAtlas(s.assetPath), (a) => (this.atlas.notes = a));
-    await apply('holdNote', 'sustains', (s) => tryAtlas(s.assetPath), (a) => (this.atlas.sustains = a));
+    if (ext.holdNote) {
+      const hn = ext.holdNote;
+      if (hn.data?.left?.body) {
+        await apply('holdNote', 'sustains', (s) => tryAtlas(s.assetPath), (a) => (this.atlas.sustains = a));
+      } else {
+        // official layout: a bare PNG with 8 columns
+        try {
+          const img = await loadImage(`${resolveAssetUrl(base, hn.assetPath)}.png`);
+          const sliced = sliceHoldSheet(img, hn.scale ?? 0.7);
+          this.style.holdNote = sliced.style;
+          this.atlas.sustains = sliced.atlas;
+        } catch (e) {
+          this.warn(`holdNote sheet: ${e.message} - using placeholder`);
+        }
+      }
+    }
 
     if (ext.holdNoteCover) {
       const covers = {};

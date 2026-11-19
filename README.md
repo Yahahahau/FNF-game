@@ -82,3 +82,17 @@ src/TestNoteGenerator.js    hard-coded demo pattern (not a chart system)
 
 "Friday Night Funkin'" is a trademark of The Funkin' Crew Inc.; this is an unofficial fan prototype, not affiliated with or endorsed by them.
 Code: MIT (see `LICENSE`).
+
+
+## Using the official assets locally (never committed)
+
+The public repo and the GitHub Pages build only use original placeholder sprites, because
+`FunkinCrew/funkin.assets` is "all rights reserved". To test with the official art on your own machine:
+
+```
+npm run assets:official      # copies notes / strumline / splashes / hold covers / hold sheet into public/official/
+npm run dev                  # open http://localhost:5173/?pack=./official
+```
+
+`public/official/` is gitignored. Do not commit, bundle or deploy it. The loader slices the official
+`NOTE_hold_assets.png` (8 columns: body + cap per direction) itself; anything missing falls back to the placeholder.

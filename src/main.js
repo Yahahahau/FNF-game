@@ -248,6 +248,10 @@ function start(assets) {
     restartBtn.blur();
   });
 
+  if (assets.source !== 'placeholder') {
+    $('legal').textContent = 'Local test with a user-supplied asset pack \u2014 not affiliated with The Funkin\' Crew Inc. Do not redistribute.';
+  }
+
   // --- go --------------------------------------------------------------------------------
   statusEl.hidden = true;
   controlsEl.hidden = false;
